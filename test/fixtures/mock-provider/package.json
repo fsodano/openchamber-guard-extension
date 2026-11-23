@@ -1,0 +1,5 @@
+{
+  "name": "mock-provider",
+  "private": true,
+  "type": "module"
+}
