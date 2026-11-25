@@ -1,22 +1,142 @@
 # OpenChamber guard extension
 
-Save execution guards and enable them for an OpenCode session or request. The extension includes the guard controls,
-an authenticated local service, and an OpenCode plugin that rejects matching permission-checked actions.
+OpenChamber Guard Extension lets you create execution guards. A **definition** is a saved rule set; an **activation**
+turns one on for a session or one OpenCode run (the panel calls this **This request**). The extension has three parts:
+guard controls in an OpenChamber panel; an authenticated local service that stores and manages definitions and
+activations; and a bundled OpenCode plugin that denies matching actions OpenCode sends through its permission checks
+before they run.
 
-## Install
+![Guard panel with an active guard](docs/guard-panel.png)
 
-OpenChamber 2.7.0 or later is required. In **Settings -> Extensions**, add this package's root folder and approve its
-model, session, service, and OpenCode plugin permissions. OpenChamber installs the bundled plugin on its managed local
-OpenCode server. Wait for **Enforced by the plugin** before relying on a guard.
+*The running panel shows the enforcement status and one active guard.*
 
-Older versions of `td-opencode-plugin` include guards. Install this extension and confirm that its
-`openchamber-guard-extension` plugin is running before updating TD-Plugin to a version without guards. Otherwise, active
-guards stop being enforced. Both plugins can enforce the same store during the transition. Existing definitions and
-activations remain in `~/.td-opencode-plugin/guards/`.
+## Install and verify
 
-Read the [guard guide](docs/guards.md) for scope, release, data handling, and enforcement limits.
+The package declares OpenChamber `>=2.7.0` in its [manifest](package.json).
+
+1. In OpenChamber, add the package root under **Settings -> Extensions**.
+2. Approve access to the Small Model, sessions, local service, and bundled OpenCode plugin. The service runs with your
+   full user privileges, outside the panel sandbox.
+3. Open the Guards panel in a session. OpenChamber installs the bundled plugin on its managed local OpenCode server.
+4. Wait for **Enforced by the plugin** before relying on a guard.
+
+That status comes from a fresh plugin runtime report for the current location. It confirms the plugin has registered its
+enforcement check and can use the saved guard state there. A missing, stale, or unreadable report does not confirm
+enforcement; existing rules may still be active.
+
+### Transition from TD-Plugin guards
+
+Older versions of `td-opencode-plugin` include guard enforcement. Before removing that support or updating to a version
+without guards, confirm that `openchamber-guard-extension` is active in OpenCode's plugin list and the panel shows
+**Enforced by the plugin**. A status report alone does not identify which plugin wrote it. If TD-Plugin's guard support
+is removed first, existing active guards stop being enforced. Both plugins can enforce the same store during the
+transition. Definitions and activations are stored in `~/.td-opencode-plugin/guards/`.
+
+## Use the panel
+
+1. Open **Guards** in the session where the guard should apply.
+2. In **New guard**, enter a plain-text guard request such as “block Git commits” and select **Generate preview**. Each
+   click sends the request to your Small Model and uses tokens.
+3. Review the proposed rules, description, and message the agent will see. The request and description do not enforce
+   anything; the validated rules do. The draft is data, not executable code.
+4. Test sample commands in the preview. The tester checks the same rules as the plugin but never runs a command. If it
+   cannot interpret a command exactly, it may report that the guard would block it.
+5. Select **Save guard**. Saving adds the definition to **Saved guards** but leaves it off.
+6. Select **Enable…** on a saved guard and choose its scope. **This session** is the default; expiry is off until you
+   select it.
+
+The two scopes apply as follows:
+
+- **This session** applies to the current chat session and its linked subagents (child sessions OpenCode links to it) until
+  you release it or its optional expiry.
+- **This request** applies to the current OpenCode run, or the next run if the session is idle, and its linked
+  subagents. OpenCode events do not include a run identifier, so the plugin releases this scope automatically only when
+  it can confirm that the tracked run and its descendants ended. If completion is uncertain, the activation stays on
+  until you release it or its optional expiry.
+
+A session without a recorded parent link does not inherit another session's guards. **Release** stops an activation.
+Deleting a definition removes all of its activations; other active guards can still block the same action.
+
+## What guards can match
+
+The extension supports two rule types. Both apply only to actions that OpenCode sends through permission checks.
+
+### Command rules
+
+A command rule matches an executable name (not a path) when OpenCode asks permission to run a shell command. It can
+also match optional subcommand prefixes (initial word sequences after the executable and its global options) and literal
+flags. If several subcommand alternatives are listed, any one may match. If flags are listed, all of them must appear.
+
+Illustrative example from the [guard guide](docs/guards.md): a rule for executable `git` and subcommand `commit` matches
+`git commit -m "wip"`. It does not also block `git merge` or `git rebase` unless you add those operations.
+
+### Permission rules
+
+A permission rule matches one exact OpenCode permission action, such as `edit`, and optionally resource patterns that
+limit which resources the rule covers. Without resource patterns, it matches any resource for that action. It applies
+only when a tool requests that permission action; it is not a filter for every tool with a particular name. Resource
+patterns use simple wildcards rather than regular expressions: `*` matches within one path segment, `**` can cross `/`,
+and `?` matches one non-`/` character.
+
+### Definition limits
+
+The schema in [`src/guards/schema.ts`](src/guards/schema.ts) enforces these bounds:
+
+- Each definition must have 1 to 16 rules.
+- A command rule can have up to 16 subcommand alternatives, each up to 8 words, and up to 16 literal flags.
+- A permission rule can have up to 16 resource patterns.
+- The global store can hold up to 256 definitions and 1,024 activations. Text fields and the store file have separate
+  size limits in the schema.
+
+## Enforcement boundaries
+
+A matching permission-checked action is denied before execution, even if ordinary permissions would allow it. OpenCode
+returns a tool error and the agent can continue with other work. A guard cannot stop an action that has already started.
+
+Guards are not an operating-system security boundary. The agent runs as your operating-system user and could alter guard
+files or automate user controls. The plugin exposes no model tool, command, or RPC for managing guards, but that does not
+prevent those operating-system actions.
+
+Command matching cannot reliably detect operations hidden inside arbitrary scripts, aliases, or other programs. A tool
+that never requests permission does not pass through the guard checks. A plugin registered later can also change a
+permission decision.
+
+Some shell rules with resource patterns are checked during permission evaluation rather than the plugin's early command
+check. An earlier hook, such as Jev, may send the command to its service before the guard denies it. Review other
+plugins' data handling.
+
+## Storage, data, and recovery
+
+Definitions are saved rule sets, and activations enable them for a session or OpenCode run. Both are global across
+projects on this computer. The store is
+`~/.td-opencode-plugin/guards/store.json`; the service and plugin must use the same guard directory. Separate hosts
+without a shared directory do not share guards. Guard data does not change permanent OpenCode configuration.
+
+The local service runs with your full user privileges, outside the panel sandbox. The panel sends a request to the Small
+Model only when you select **Generate preview**; it does not read project files or conversations, send prompts to chat
+sessions, or change sessions. Session information and parent links are used to apply guards to subagents. Guard requests
+are saved as your data, so do not include credentials in requests or sample commands. Plugin status reports and records
+used to track request-scope completion do not include live command text or permission-resource values.
+
+An extension update or restart does not release session-scoped activations (guards enabled for a session). Pausing or
+removing the extension does not remove the global store. Release activations before removing the extension, or keep a
+working guard-management control available.
+
+If an existing store becomes unreadable or disappears, the plugin keeps its last valid copy. Invalid initial state
+blocks supported mutating actions (shell, edit, write, patch, and subagent actions) until the store is repaired; a store
+missing on the first read means there are no saved guards. If the service reports damaged data, existing rules may still
+be active. Recovery requires a user confirmation, resets definitions and activations across every project, and keeps a
+backup of the damaged file. Only the confirmed user control can start recovery; the model cannot request it through a
+guard-management tool. Cancelling leaves the current state unchanged. A failed recovery is not a release; wait for the
+plugin to report the valid replacement state.
+
+See [docs/guards.md](docs/guards.md) for the full scope and release behavior, data handling, recovery steps, and
+enforcement limits.
 
 ## Development
+
+The commands below are defined in [`package.json`](package.json). Build the shipped JavaScript before installing the
+extension; OpenChamber does not compile TypeScript.
 
 ```bash
 bun install
@@ -27,5 +147,4 @@ bun run extension:check
 bun run test:integration
 ```
 
-The integration tests use isolated OpenCode servers and a local mock model. The shipped JavaScript is built before
-installation; OpenChamber does not compile TypeScript.
+The separate panel preview under `extension/test/preview/` is for development and is not part of the installed package.
