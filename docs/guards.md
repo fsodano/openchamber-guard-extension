@@ -82,9 +82,9 @@ plugin to report the valid replacement state before treating the recovery as com
 
 ## Storage and permissions
 
-Guard definitions and activations are stored globally in `~/.td-opencode-plugin/guards/store.json`. The extension's
-local service serializes changes under a cross-process lock. The plugin reads this file; it writes separate lifecycle
-facts and runtime snapshots. Guards do not modify permanent OpenCode configuration.
+Guard definitions and activations are stored globally in a local store file. The extension's local service serializes
+changes under a cross-process lock. The plugin reads this file; it writes separate lifecycle facts and runtime
+snapshots. Guards do not modify permanent OpenCode configuration.
 
 The plugin and the extension service must see the same guard directory. Separate hosts without a shared directory
 do not share these definitions or activations.

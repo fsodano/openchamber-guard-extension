@@ -104,9 +104,9 @@ plugins' data handling.
 
 ## Storage, data, and recovery
 
-Saved guards and their enabled state are global across projects on this computer. The store is
-`~/.td-opencode-plugin/guards/store.json`; the service and plugin must use the same guard directory. Separate hosts
-without a shared directory do not share guards. Guard data does not change permanent OpenCode configuration.
+Saved guards and their enabled state are global across projects on this computer. The service writes them to a local
+store and the plugin reads it; both must use the same guard directory. Separate hosts without a shared directory do not
+share guards. Guard data does not change permanent OpenCode configuration.
 
 The local service runs with your full user privileges, outside the panel sandbox. The panel sends a request to the Small
 Model only when you select **Generate preview**; it does not read project files or conversations, send prompts to chat
