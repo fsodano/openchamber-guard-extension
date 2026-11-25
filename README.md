@@ -15,6 +15,129 @@ them.
 
 *The running panel shows the enforcement status and one active guard.*
 
+## How a guard works
+
+The panel turns a plain-language request into validated rules, saves them through the local service, and the plugin
+enforces them inside OpenCode. The sequence shows one full cycle; the C4 views show the same pieces at system and
+container level.
+
+**Sequence diagram: creating and enforcing a guard.**
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant panel as Guards panel
+    participant host as OpenChamber host
+    participant model as Small Model
+    participant service as Local guard service
+    participant store as Guard store
+    participant opencode as OpenCode server
+    participant plugin as Guard plugin
+    participant agent as Agent
+
+    user->>panel: Enters a guard request
+    panel->>host: Requests a draft
+    host->>model: Sends the request
+    model-->>host: Returns draft rules
+    host-->>panel: Returns the draft
+    panel->>panel: Validates rules and shows the tester
+    user->>panel: Selects Save guard
+    panel->>host: Saves the guard
+    host->>service: Forwards the save
+    service->>store: Writes the guard
+    user->>panel: Enables the guard
+    panel->>host: Creates an activation
+    host->>service: Forwards the activation
+    service->>store: Writes the activation
+    opencode->>plugin: Asks permission for an action
+    plugin->>store: Reads active guards
+    store-->>plugin: Returns matching rules
+    plugin-->>opencode: Denies the action
+    opencode-->>agent: Returns a tool error
+    agent->>agent: Continues with other work
+```
+
+**System Context diagram for OpenChamber Guard Extension (C4 L1).**
+
+```mermaid
+flowchart TB
+    user["<b>User</b><br/>«Person»<br/>Defines and enables guards"]
+    extension["<b>OpenChamber Guard Extension</b><br/>«Software System»<br/>Defines, stores, and enforces agent action guards"]
+    host["<b>OpenChamber host</b><br/>«Software System, external»<br/>Hosts the panel and service; provides model and session access"]
+    opencode["<b>OpenCode server</b><br/>«Software System, external»<br/>Runs the agent and loads the bundled plugin"]
+    model["<b>Small Model</b><br/>«Software System, external»<br/>Turns plain-language requests into guard rules"]
+
+    user -->|"Defines and enables guards in"| extension
+    extension -->|"Runs the panel and service inside"| host
+    host -->|"Sends guard requests to"| model
+    extension -->|"Enforces guards in"| opencode
+    host -->|"Manages the local server"| opencode
+
+    classDef person fill:#08427b,stroke:#052e56,color:#fff
+    classDef system fill:#1168bd,stroke:#0b4884,color:#fff
+    classDef external fill:#999,stroke:#6b6b6b,color:#fff
+    classDef hidden fill:none,stroke:none,color:transparent
+    class user person
+    class extension system
+    class host,opencode,model external
+
+    subgraph Legend
+        direction LR
+        l1["Person"]:::person
+        l2["Software System (in scope)"]:::system
+        l3["Software System (external)"]:::external
+    end
+    bottomNode[" "]:::hidden
+    bottomNode ~~~ Legend
+```
+
+**Container diagram for OpenChamber Guard Extension (C4 L2).**
+
+```mermaid
+flowchart TB
+    user["<b>User</b><br/>«Person»<br/>Defines and enables guards"]
+    host["<b>OpenChamber host</b><br/>«Software System, external»<br/>Hosts the panel and service; provides model and session access"]
+    opencode["<b>OpenCode server</b><br/>«Software System, external»<br/>Runs the agent"]
+    model["<b>Small Model</b><br/>«Software System, external»<br/>Drafts guard rules"]
+
+    subgraph boundary["OpenChamber Guard Extension [Software System]"]
+        panel["<b>Guards panel</b><br/>«Container: TypeScript, HTML»<br/>Creates, previews, saves, enables, and releases guards"]
+        service["<b>Local guard service</b><br/>«Container: Node.js, host runtime»<br/>Validates changes and writes the guard store"]
+        store[("<b>Guard store</b><br/>«Container: JSON file»<br/>Saved guards, activations, lifecycle facts, runtime snapshots")]
+        plugin["<b>Guard plugin</b><br/>«Container: TypeScript, OpenCode plugin»<br/>Denies matching permission-checked actions"]
+    end
+
+    user -->|"Defines and enables guards in [UI]"| panel
+    panel -->|"Requests drafts and service calls [JSON postMessage]"| host
+    host -->|"Sends guard requests to [host model API]"| model
+    host -->|"Starts and proxies the service [HTTP on localhost]"| service
+    service -->|"Reads and writes guards [file I/O]"| store
+    service -->|"Resolves session parent links [OpenCode API]"| opencode
+    opencode -->|"Loads the plugin and invokes its permission hook [in-process]"| plugin
+    plugin -->|"Reads active guards and writes lifecycle facts [file I/O]"| store
+
+    classDef person fill:#08427b,stroke:#052e56,color:#fff
+    classDef container fill:#438dd5,stroke:#2e6295,color:#fff
+    classDef datastore fill:#2e6da4,stroke:#1b4f72,color:#fff
+    classDef external fill:#999,stroke:#6b6b6b,color:#fff
+    classDef hidden fill:none,stroke:none,color:transparent
+    class user person
+    class panel,service,plugin container
+    class store datastore
+    class host,opencode,model external
+
+    subgraph Legend
+        direction LR
+        l1["Person"]:::person
+        l2["Container"]:::container
+        l3[("Data store / file")]:::datastore
+        l4["External system"]:::external
+    end
+    bottomNode[" "]:::hidden
+    bottomNode ~~~ Legend
+```
+
 ## Install and verify
 
 The package declares OpenChamber `>=2.7.0` in its [manifest](package.json).
@@ -88,15 +211,32 @@ and its `install` action expects a registry selector.
 ## Use the panel
 
 1. Open **Guards** in the session where the guard should apply.
+
+   ![Guards panel with the enforcement status, one active guard, and the saved guards list](docs/steps/step-1.png)
+
 2. In **New guard**, enter a plain-text guard request such as “block Git commits” and select **Generate preview**. Each
    click sends the request to your Small Model and uses tokens.
+
+   ![New guard request filled in and the Generate preview button enabled](docs/steps/step-2.png)
+
 3. Review the proposed rules, description, and message the agent will see. The request and description do not enforce
    anything; the validated rules do. The draft is data, not executable code.
+
+   ![Draft preview showing the rules, the model description, and the message the agent sees](docs/steps/step-3.png)
+
 4. Test sample commands in the preview. The tester checks the same rules as the plugin but never runs a command. If it
    cannot interpret a command exactly, it may report that the guard would block it.
+
+   ![Command tester reporting that git commit would be blocked by rule 1](docs/steps/step-4.png)
+
 5. Select **Save guard**. Saving adds the guard to **Saved guards** but leaves it off.
+
+   ![Saved guard shown as off with its Enable and Delete controls](docs/steps/step-5.png)
+
 6. Select **Enable…** on a saved guard and choose its scope. **This session** is the default; expiry is off until you
    select it.
+
+   ![Enable form with This session selected and the This request and automatic expiry options](docs/steps/step-6.png)
 
 The two scopes apply as follows:
 
@@ -188,7 +328,8 @@ enforcement limits.
 ## Development
 
 The commands below are defined in [`package.json`](package.json). Build the shipped JavaScript before installing the
-extension; OpenChamber does not compile TypeScript.
+extension; OpenChamber does not compile TypeScript. Node 26 is the supported runtime for the host service; `.nvmrc` and
+`.node-version` pin the major version. The build and tests use Bun.
 
 ```bash
 bun install
