@@ -1,7 +1,8 @@
 # OpenChamber guard extension
 
-OpenChamber Guard Extension lets you block the agent from taking the actions you name, such as running a shell command
-or editing a file, before those actions execute.
+OpenChamber Guard Extension lets you define guards that block actions you do not want the agent to run, such as Git
+commits or edits to `.env` files. You describe the guard in plain language, and a Small Model turns it into a
+code-enforced rule.
 
 A **definition** is a saved list of rules. An **activation** turns a definition on for a session or for one OpenCode
 run, which the panel calls **This request**.
