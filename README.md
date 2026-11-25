@@ -29,14 +29,6 @@ That status comes from a fresh plugin runtime report for the current location. I
 enforcement check and can use the saved guard state there. A missing, stale, or unreadable report does not confirm
 enforcement; existing rules may still be active.
 
-### Transition from TD-Plugin guards
-
-Older versions of `td-opencode-plugin` include guard enforcement. Before removing that support or updating to a version
-without guards, confirm that `openchamber-guard-extension` is active in OpenCode's plugin list and the panel shows
-**Enforced by the plugin**. A status report alone does not identify which plugin wrote it. If TD-Plugin's guard support
-is removed first, existing active guards stop being enforced. Both plugins can enforce the same store during the
-transition. Saved guards and their enabled state are stored in `~/.td-opencode-plugin/guards/`.
-
 ## Use the panel
 
 1. Open **Guards** in the session where the guard should apply.

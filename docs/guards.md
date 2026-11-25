@@ -109,11 +109,6 @@ enforcement runtime was recorded for the current location; a missing or stale re
 Build the package, then add its root folder in OpenChamber under **Settings → Extensions**. Review the model, session,
 local-service, and bundled-plugin permissions. The global guard store survives an extension update or removal.
 
-Older versions of `td-opencode-plugin` include their own guard plugin. Install this extension and confirm that its
-`openchamber-guard-extension` plugin is running before updating TD-Plugin to a version without guards. Otherwise, active
-guards stop being enforced. Both plugins can enforce the same store during the transition. A guard status report alone
-does not identify which plugin wrote it; check the OpenCode plugin list as well.
-
 Open the guard extension in a session. Wait for **Enforced by the plugin**, enter a request, and select **Generate**.
 Review the rules and test sample commands, then save the definition. Enable it with the scope you want. Save alone leaves
 it inactive. Use **Release** to stop an activation.
