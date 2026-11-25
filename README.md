@@ -1,10 +1,12 @@
 # OpenChamber guard extension
 
-OpenChamber Guard Extension lets you create execution guards. A **definition** is a saved rule set; an **activation**
-turns one on for a session or one OpenCode run (the panel calls this **This request**). The extension has three parts:
-guard controls in an OpenChamber panel; an authenticated local service that stores and manages definitions and
-activations; and a bundled OpenCode plugin that denies matching actions OpenCode sends through its permission checks
-before they run.
+OpenChamber Guard Extension lets you block the agent from taking the actions you name, such as running a shell command
+or editing a file, before those actions execute.
+
+A **definition** is a saved rule set; an **activation** turns one on for a session or one OpenCode run (the panel calls
+this **This request**). The extension has three parts: guard controls in an OpenChamber panel; an authenticated local
+service that stores and manages definitions and activations; and a bundled OpenCode plugin that denies matching actions
+OpenCode sends through its permission checks before they run.
 
 ![Guard panel with an active guard](docs/guard-panel.png)
 
