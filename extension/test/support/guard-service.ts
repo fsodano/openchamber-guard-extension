@@ -29,7 +29,7 @@ export const guard = (patch: Partial<Guard> = {}): Guard => ({
 })
 
 export const runtime = (patch: Partial<GuardRuntimeReport> = {}): GuardRuntimeReport => ({
-  schema: "td-guards-runtime/1",
+  schema: "openchamber-guards-runtime/1",
   directory: "/work/example-project",
   instanceId: "inst_1",
   registered: true,

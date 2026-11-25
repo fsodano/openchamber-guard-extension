@@ -2,9 +2,8 @@
  * Entry of the guard service. The OpenChamber host starts it (`service/main.js`) and sets
  * `OPENCHAMBER_SERVICE_PORT` and `OPENCHAMBER_SERVICE_TOKEN`. It listens on 127.0.0.1 only.
  *
- * The service is the only writer of guard intent (`~/.td-opencode-plugin/guards/store.json`). It exposes no
+ * The service is the only writer of guard intent (`~/.openchamber-guard-extension/guards/store.json`). It exposes no
  * model-facing tool. Removing the extension does not delete the store.
- * The store stays in `~/.td-opencode-plugin/guards` so that data from earlier versions keeps working.
  */
 import { homedir } from "node:os"
 import { join } from "node:path"
@@ -25,7 +24,7 @@ if (!Number.isInteger(port) || port <= 0 || port > 65535 || !token) {
 const app = createApp({
   runtime: nodeRuntime(),
   schema: backendSchema,
-  root: join(homedir(), ".td-opencode-plugin"),
+  root: join(homedir(), ".openchamber-guard-extension"),
   token,
   bridge: createSessionBridge(process.env),
   // Log fixed codes only. Never log tokens, paths, commands, or request bodies.

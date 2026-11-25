@@ -198,7 +198,7 @@ describe("early shell gate: rule types", () => {
 })
 
 describe("early shell gate: fail closed", () => {
-  const invalid = '{"schema":"td-guards/1","revision":1,"guards":[{"bad":true}],"activations":[]}'
+  const invalid = '{"schema":"openchamber-guards/1","revision":1,"guards":[{"bad":true}],"activations":[]}'
 
   test("an invalid store blocks every shell call with the fixed message, and not other tools", async () => {
     const t = await start({ store: invalid })
@@ -363,7 +363,7 @@ describe("early shell gate: report, log, and counts", () => {
   })
 
   test("a fail-closed block counts, and an allowed call does not", async () => {
-    const t = await start({ store: '{"schema":"td-guards/1","revision":1,"guards":[{"bad":true}],"activations":[]}' })
+    const t = await start({ store: '{"schema":"openchamber-guards/1","revision":1,"guards":[{"bad":true}],"activations":[]}' })
     await t.g.before(shell("root", "ls"))
     await t.g.before({ sessionID: "root", tool: "read", input: {} })
     await settle()

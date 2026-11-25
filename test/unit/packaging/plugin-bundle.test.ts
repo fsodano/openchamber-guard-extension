@@ -52,7 +52,7 @@ describe("package manifest", () => {
     expect(contributes.capabilities).toEqual(["model", "sessions"])
     // The model-check status files belong to the other plugin. This extension reads none of them.
     expect(JSON.stringify(pkg.openchamber)).not.toContain("status/")
-    expect(JSON.stringify(pkg.openchamber)).not.toMatch(/td-fuelix|fuelix/i)
+    expect(JSON.stringify(pkg.openchamber)).not.toMatch(/fuelix/i)
   })
 
   test("every manifest asset exists and is listed in files, with no broad globs", async () => {
@@ -150,15 +150,15 @@ describe("plugin build is independent of the working directory", () => {
 })
 
 describe("plugin source", () => {
-  test("has its own id and keeps the guard storage location of earlier versions", () => {
+  test("has its own id and stores guards under its own directory", () => {
     expect(PLUGIN_ID).toBe("openchamber-guard-extension")
     expect(createPlugin().id).toBe(PLUGIN_ID)
-    expect(guardPaths("/h").root).toBe("/h/.td-opencode-plugin/guards")
+    expect(guardPaths("/h").root).toBe("/h/.openchamber-guard-extension/guards")
   })
 
   test("service and plugin read the same store location", async () => {
     const main = await readFile(join(ROOT, "extension/service/main.ts"), "utf8")
-    expect(main).toContain('root: join(homedir(), ".td-opencode-plugin")')
+    expect(main).toContain('root: join(homedir(), ".openchamber-guard-extension")')
   })
 
   test("a setup failure is logged without the error body and returns a cleanup", async () => {
@@ -234,7 +234,7 @@ const ctx = new Proxy(target, { get: (object, key) => (touched.add(String(key)),
 const cleanup = await plugin.setup(ctx)
 await new Promise((resolve) => setTimeout(resolve, 600))
 const { readdir, readFile } = await import("node:fs/promises")
-const runtimeDir = process.env.HOME + "/.td-opencode-plugin/guards/runtime"
+const runtimeDir = process.env.HOME + "/.openchamber-guard-extension/guards/runtime"
 const guardRuntime = []
 for (const name of await readdir(runtimeDir).catch(() => [])) guardRuntime.push(JSON.parse(await readFile(runtimeDir + "/" + name, "utf8")))
 console.log("RESULT " + JSON.stringify({
@@ -274,7 +274,7 @@ process.exit(0)
       expect(result.touched.every((key) => ["event", "location", "permission", "session", "then", "tool"].includes(key))).toBe(true)
       expect(result.guardRuntime).toEqual([{ registered: true, coveredActions: ["shell", "subagent"], storeState: "missing" }])
       // Only the guard folder appears below the home directory.
-      expect(existsSync(join(home, ".td-opencode-plugin", "status"))).toBe(false)
+      expect(existsSync(join(home, ".openchamber-guard-extension", "status"))).toBe(false)
     } finally {
       await rm(home, { recursive: true, force: true })
     }

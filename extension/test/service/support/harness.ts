@@ -51,7 +51,7 @@ export interface Env {
 let counter = 0
 
 export function makeEnv(pid = 4242): Env {
-  const root = mkdtempSync(join(tmpdir(), "td-guards-service-"))
+  const root = mkdtempSync(join(tmpdir(), "openchamber-guards-service-"))
   const clock = makeClock()
   const procs = new FakeProcesses(pid)
   return {

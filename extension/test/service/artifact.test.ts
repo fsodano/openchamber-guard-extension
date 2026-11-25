@@ -37,7 +37,7 @@ function request(method: string, path: string, body?: unknown, token: string | n
 }
 
 beforeAll(async () => {
-  dir = mkdtempSync(join(tmpdir(), "td-guards-artifact-"))
+  dir = mkdtempSync(join(tmpdir(), "openchamber-guards-artifact-"))
   home = join(dir, "home")
   const result = await Bun.build({
     entrypoints: [join(import.meta.dir, "..", "..", "service", "main.ts")],
@@ -149,17 +149,17 @@ describe("built service artifact under Node", () => {
   })
 
   test("files land under HOME with private modes and no token inside", () => {
-    const file = join(home, ".td-opencode-plugin", "guards", "store.json")
+    const file = join(home, ".openchamber-guard-extension", "guards", "store.json")
     expect(statSync(file).mode & 0o777).toBe(0o600)
-    expect(statSync(join(home, ".td-opencode-plugin", "guards")).mode & 0o777).toBe(0o700)
+    expect(statSync(join(home, ".openchamber-guard-extension", "guards")).mode & 0o777).toBe(0o700)
     expect(readFileSync(file, "utf8")).not.toContain(TOKEN)
     expect(stderr).not.toContain(TOKEN)
   })
 
   test("store recovery over HTTP: corrupt store, confirmation, backup, replay", async () => {
-    const guardsDir = join(home, ".td-opencode-plugin", "guards")
+    const guardsDir = join(home, ".openchamber-guard-extension", "guards")
     const file = join(guardsDir, "store.json")
-    const raw = '{"schema":"td-guards/1","revision":7,"guards":'
+    const raw = '{"schema":"openchamber-guards/1","revision":7,"guards":'
     writeFileSync(file, raw)
 
     const view = await request("GET", "/state")

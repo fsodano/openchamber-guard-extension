@@ -74,7 +74,7 @@ export function activation(id: string, guardId: string, sessionId: string, extra
 }
 
 export function storeOf(guards: Guard[], activations: Activation[], revision = 1): GuardStore {
-  return { schema: "td-guards/1", revision, guards, activations }
+  return { schema: "openchamber-guards/1", revision, guards, activations }
 }
 
 export const commitRule: Rule = { kind: "command", program: "git", subcommands: [["commit"]] }

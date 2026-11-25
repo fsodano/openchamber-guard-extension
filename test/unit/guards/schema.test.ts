@@ -68,7 +68,7 @@ describe("parseGuardStore", () => {
   })
   test("rejects unknown fields, wrong schema, duplicates, and bad timestamps", () => {
     expect(parseGuardStore({ ...good, extra: 1 }).ok).toBe(false)
-    expect(parseGuardStore({ ...good, schema: "td-guards/2" }).ok).toBe(false)
+    expect(parseGuardStore({ ...good, schema: "openchamber-guards/2" }).ok).toBe(false)
     expect(parseGuardStore({ ...good, revision: -1 }).ok).toBe(false)
     expect(parseGuardStore({ ...good, revision: 1.5 }).ok).toBe(false)
     expect(parseGuardStore({ ...good, guards: [good.guards[0], good.guards[0]] }).ok).toBe(false)
@@ -95,7 +95,7 @@ describe("parseGuardStore", () => {
 
 describe("runtime report and lifecycle parsers", () => {
   const report = {
-    schema: "td-guards-runtime/1",
+    schema: "openchamber-guards-runtime/1",
     directory: "/p",
     instanceId: "i1",
     registered: true,

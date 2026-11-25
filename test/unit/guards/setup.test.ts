@@ -148,7 +148,7 @@ describe("store failure", () => {
   const good = storeOf([guard("g1", [commitRule])], [activation("a1", "g1", "root")])
 
   test("an invalid store at startup blocks mutating actions with the fixed message", async () => {
-    const { g, fs } = await start({ store: '{"schema":"td-guards/1","revision":1,"guards":[{"bad":true}],"activations":[]}' })
+    const { g, fs } = await start({ store: '{"schema":"openchamber-guards/1","revision":1,"guards":[{"bad":true}],"activations":[]}' })
     for (const action of MUTATING_ACTIONS) {
       const result = await g.evaluate({ sessionID: "root", action, resources: ["x"], effect: "allow" })
       expect(result.effect).toBe("deny")

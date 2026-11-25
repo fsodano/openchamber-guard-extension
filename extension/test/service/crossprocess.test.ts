@@ -13,7 +13,7 @@ let root = ""
 afterEach(() => root && rmSync(root, { recursive: true, force: true }))
 
 function fresh(): string {
-  root = mkdtempSync(join(tmpdir(), "td-guards-xproc-"))
+  root = mkdtempSync(join(tmpdir(), "openchamber-guards-xproc-"))
   return root
 }
 

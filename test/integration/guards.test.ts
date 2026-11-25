@@ -232,7 +232,7 @@ async function startRig(extraConfig: Record<string, unknown> = {}, probeFirst = 
     sandbox,
     binDir,
     probeFile,
-    guardsDir: join(server.dirs.home, ".td-opencode-plugin", "guards"),
+    guardsDir: join(server.dirs.home, ".openchamber-guard-extension", "guards"),
     async stop() {
       feed.close()
       await server.stop()
@@ -257,7 +257,7 @@ describe("guards: real plugin on an isolated server", () => {
     revision++
     mkdirSync(rig.guardsDir, { recursive: true })
     const temporary = join(rig.guardsDir, `.store-${revision}.tmp`)
-    writeFileSync(temporary, JSON.stringify({ schema: "td-guards/1", revision, guards, activations }))
+    writeFileSync(temporary, JSON.stringify({ schema: "openchamber-guards/1", revision, guards, activations }))
     renameSync(temporary, join(rig.guardsDir, "store.json"))
   }
   const activation = (id: string, sessionId: string, extra: Partial<Activation> & { guardId?: string } = {}): Activation => ({
@@ -619,7 +619,7 @@ describe("guards: ordinary approval that would prompt", () => {
     writeFileSync(
       join(rig.guardsDir, "store.json"),
       JSON.stringify({
-        schema: "td-guards/1",
+        schema: "openchamber-guards/1",
         revision: 1,
         guards: [COMMIT_GUARD],
         activations: sessionIDs.map((sessionId, index) => ({ id: `act-ask-${index}`, guardId: COMMIT_GUARD.id, sessionId, scope: "session", createdAt: new Date().toISOString(), expiresAt: null })),

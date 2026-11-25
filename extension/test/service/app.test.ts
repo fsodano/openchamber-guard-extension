@@ -32,7 +32,7 @@ function writeRuntime(directory: string | null, recordedAt: string) {
   writeFileSync(
     runtimeFile(directory),
     JSON.stringify({
-      schema: "td-guards-runtime/1",
+      schema: "openchamber-guards-runtime/1",
       directory,
       instanceId: "inst-1",
       registered: true,
@@ -123,14 +123,14 @@ describe("state", () => {
   test("a corrupt store is reported and never overwritten", async () => {
     env = makeEnv()
     mkdirSync(join(env.root, "guards"), { recursive: true })
-    writeFileSync(storeFile(), '{"schema":"td-guards/1","revision":"x"}')
+    writeFileSync(storeFile(), '{"schema":"openchamber-guards/1","revision":"x"}')
     const app = makeApp(env)
     const view = await call(app, "GET", "/state")
     expect(view.status).toBe(503)
     expect(view.body.error.code).toBe("STORE_CORRUPT")
     const write = await createGuard(app)
     expect(write.body.error.code).toBe("STORE_CORRUPT")
-    expect(readFileSync(storeFile(), "utf8")).toBe('{"schema":"td-guards/1","revision":"x"}')
+    expect(readFileSync(storeFile(), "utf8")).toBe('{"schema":"openchamber-guards/1","revision":"x"}')
   })
 
   test("runtime: fresh snapshot is live, stale is null, malformed is invalid", async () => {

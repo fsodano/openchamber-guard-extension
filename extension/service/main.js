@@ -7,8 +7,8 @@ import { createHash } from "node:crypto";
 import { join } from "node:path";
 
 // src/guards/schema.ts
-var GUARD_STORE_SCHEMA = "td-guards/1";
-var GUARD_RUNTIME_SCHEMA = "td-guards-runtime/1";
+var GUARD_STORE_SCHEMA = "openchamber-guards/1";
+var GUARD_RUNTIME_SCHEMA = "openchamber-guards-runtime/1";
 var LIMITS = {
   array: 16,
   guards: 256,
@@ -1214,7 +1214,7 @@ class Store {
       };
       let operations = [...doc.operations ?? [], stored].slice(-this.schema.maxOperations);
       const build = () => ({
-        schema: "td-guards/1",
+        schema: "openchamber-guards/1",
         revision: doc.revision + 1,
         guards: draft.guards,
         activations: draft.activations,
@@ -1341,7 +1341,7 @@ class Store {
       const backup = `store.corrupt-${utcStamp(runtime.now())}-${runtime.token()}.json`;
       const result = { recovered: true, backup };
       const next = {
-        schema: "td-guards/1",
+        schema: "openchamber-guards/1",
         revision,
         guards: [],
         activations: [],
@@ -1781,7 +1781,7 @@ if (!Number.isInteger(port) || port <= 0 || port > 65535 || !token) {
 var app = createApp({
   runtime: nodeRuntime(),
   schema: backendSchema,
-  root: join3(homedir(), ".td-opencode-plugin"),
+  root: join3(homedir(), ".openchamber-guard-extension"),
   token,
   bridge: createSessionBridge(process.env),
   log: (code2) => console.error(`guard service: ${code2}`)

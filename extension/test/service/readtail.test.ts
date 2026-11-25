@@ -65,7 +65,7 @@ describe("nodeFs.readTail", () => {
   afterEach(() => dir && rmSync(dir, { recursive: true, force: true }))
 
   test("reads a real file's tail and returns null when it is missing", async () => {
-    dir = mkdtempSync(join(tmpdir(), "td-guards-tail-"))
+    dir = mkdtempSync(join(tmpdir(), "openchamber-guards-tail-"))
     const file = join(dir, "log.jsonl")
     writeFileSync(file, "line1\nline2\nline3\n")
     expect(await nodeFs.readTail(file, 1000)).toEqual({ text: "line1\nline2\nline3\n", truncated: false })

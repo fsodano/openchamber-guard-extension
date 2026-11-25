@@ -275,7 +275,7 @@ describe("readers", () => {
   })
 
   test("node readTail reads a bounded tail of a file in a temporary directory", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "td-guards-tail-"))
+    const dir = mkdtempSync(join(tmpdir(), "openchamber-guards-tail-"))
     try {
       const fs = createNodeGuardFs()
       const path = join(dir, "lifecycle.jsonl")

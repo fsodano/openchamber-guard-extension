@@ -14,7 +14,7 @@ import type { Runtime } from "./ports.ts"
 export interface StoreOptions {
   readonly runtime: Runtime
   readonly schema: SchemaPort
-  /** Root directory, for example `~/.td-opencode-plugin`. */
+  /** Root directory, for example `~/.openchamber-guard-extension`. */
   readonly root: string
   readonly lockTimeoutMs?: number
 }
@@ -179,7 +179,7 @@ export class Store {
       }
       let operations = [...(doc.operations ?? []), stored].slice(-this.schema.maxOperations)
       const build = (): GuardStoreDocument => ({
-        schema: "td-guards/1",
+        schema: "openchamber-guards/1",
         revision: doc.revision + 1,
         guards: draft.guards,
         activations: draft.activations,
@@ -315,7 +315,7 @@ export class Store {
       const backup = `store.corrupt-${utcStamp(runtime.now())}-${runtime.token()}.json`
       const result: RecoverResult = { recovered: true, backup }
       const next: GuardStoreDocument = {
-        schema: "td-guards/1",
+        schema: "openchamber-guards/1",
         revision,
         guards: [],
         activations: [],

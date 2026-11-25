@@ -174,7 +174,7 @@ describe("guard panel frame", () => {
     expect(findButton(root, "Check models now")).toBeNull()
     expect(findButton(root, "Reload saved report")).toBeNull()
     expect(root.querySelector("[role=tab]")).toBeNull()
-    expect(text(root)).not.toMatch(/FueliX|TD-Plugin|td-opencode-plugin/)
+    expect(text(root)).not.toMatch(/FueliX/)
   })
 
   test("after dispose, host messages change nothing", async () => {

@@ -29,7 +29,7 @@ describe("corrupt store", () => {
     const app = makeApp(env, { bridge })
     const guard = (await createGuard(app)).body.data.guard
     const activation = (await enable(app, guard.id, "ses_root")).body.data.activation
-    const broken = '{"schema":"td-guards/1","revision":"x"'
+    const broken = '{"schema":"openchamber-guards/1","revision":"x"'
     writeFileSync(storeFile(), broken)
 
     const results = [
@@ -71,7 +71,7 @@ describe("corrupt store", () => {
 
   test("recovery keeps the exact bytes as a private backup and writes a valid empty store", async () => {
     env = makeEnv()
-    const raw = '{"schema":"td-guards/1","revision":41,"guards":[{"id":"SECRET-LOOKING-VALUE"'
+    const raw = '{"schema":"openchamber-guards/1","revision":41,"guards":[{"id":"SECRET-LOOKING-VALUE"'
     corrupt(raw)
     const app = makeApp(env)
     const id = opId()
@@ -106,7 +106,7 @@ describe("corrupt store", () => {
 
   test("a raw revision above the epoch counter is kept monotonic", async () => {
     env = makeEnv()
-    corrupt(`{"schema":"td-guards/1","revision":${EPOCH_SECONDS + 5_000},"guards":"broken"}`)
+    corrupt(`{"schema":"openchamber-guards/1","revision":${EPOCH_SECONDS + 5_000},"guards":"broken"}`)
     const r = await recover(makeApp(env))
     expect(r.body.data.revision).toBe(EPOCH_SECONDS + 5_001)
   })

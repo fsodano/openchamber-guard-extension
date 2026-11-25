@@ -4,8 +4,8 @@
 import { randomBytes as randomBytes2 } from "node:crypto";
 
 // src/guards/schema.ts
-var GUARD_STORE_SCHEMA = "td-guards/1";
-var GUARD_RUNTIME_SCHEMA = "td-guards-runtime/1";
+var GUARD_STORE_SCHEMA = "openchamber-guards/1";
+var GUARD_RUNTIME_SCHEMA = "openchamber-guards-runtime/1";
 var LIMITS = {
   array: 16,
   guards: 256,
@@ -1614,7 +1614,7 @@ import { appendFile, mkdir, open, readFile, rename, rm, stat, writeFile } from "
 import { homedir as osHomedir } from "node:os";
 import { join } from "node:path";
 function guardPaths(home) {
-  const root = join(home, ".td-opencode-plugin", "guards");
+  const root = join(home, ".openchamber-guard-extension", "guards");
   return { root, store: join(root, "store.json"), lifecycle: join(root, "lifecycle.jsonl"), runtimeDir: join(root, "runtime") };
 }
 function runtimeFileName(directory) {
@@ -2141,7 +2141,7 @@ function createPlugin(steps = defaultSteps) {
 }
 var src_default = createPlugin();
 export {
-  PLUGIN_ID,
+  src_default as default,
   createPlugin,
-  src_default as default
+  PLUGIN_ID
 };

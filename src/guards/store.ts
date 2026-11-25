@@ -43,7 +43,7 @@ export interface GuardPaths {
 }
 
 export function guardPaths(home: string): GuardPaths {
-  const root = join(home, ".td-opencode-plugin", "guards")
+  const root = join(home, ".openchamber-guard-extension", "guards")
   return { root, store: join(root, "store.json"), lifecycle: join(root, "lifecycle.jsonl"), runtimeDir: join(root, "runtime") }
 }
 

@@ -47,7 +47,7 @@ const plugin = {
       })
       if (denied) {
         event.effect = "deny"
-        event.message = options.message ?? "TD guard blocks this action"
+        event.message = options.message ?? "A guard blocks this action"
       }
     })
     return async () => {}

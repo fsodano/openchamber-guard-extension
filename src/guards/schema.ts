@@ -8,8 +8,8 @@
  * The backend writes `LifecycleFact` lines and `GuardRuntimeReport` files. The service reads both.
  */
 
-export const GUARD_STORE_SCHEMA = "td-guards/1" as const
-export const GUARD_RUNTIME_SCHEMA = "td-guards-runtime/1" as const
+export const GUARD_STORE_SCHEMA = "openchamber-guards/1" as const
+export const GUARD_RUNTIME_SCHEMA = "openchamber-guards-runtime/1" as const
 
 /** Bounds. Every array and every text in the contract has a bound. */
 export const LIMITS = {

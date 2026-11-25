@@ -33,7 +33,7 @@ export interface SchemaPort {
   readonly maxGuards: number
   readonly maxActivations: number
   readonly maxOperations: number
-  /** Directory that holds the guard files, for example `~/.td-opencode-plugin/guards`. */
+  /** Directory that holds the guard files, for example `~/.openchamber-guard-extension/guards`. */
   guardsDir(root: string): string
   storePath(root: string): string
   lifecyclePath(root: string): string
