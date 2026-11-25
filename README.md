@@ -4,11 +4,12 @@ OpenChamber Guard Extension lets you define guards that block actions you do not
 commits or edits to `.env` files. You describe the guard in plain language, and a Small Model turns it into a
 code-enforced rule.
 
-A **definition** is a saved list of rules. An **activation** turns a definition on for a session or for one OpenCode
-run, which the panel calls **This request**.
+A **guard** is a saved list of rules. You can enable a guard for a session or for a single request; the panel labels
+those scopes **This session** and **This request**.
 
-The extension has three parts: guard controls in an OpenChamber panel, an authenticated local service that stores
-definitions and activations, and a bundled OpenCode plugin that denies matching actions before OpenCode runs them.
+The extension has three parts: guard controls in an OpenChamber panel, an authenticated local service that saves guards
+and records where they are enabled, and a bundled OpenCode plugin that denies matching actions before OpenCode runs
+them.
 
 ![Guard panel with an active guard](docs/guard-panel.png)
 
@@ -34,7 +35,7 @@ Older versions of `td-opencode-plugin` include guard enforcement. Before removin
 without guards, confirm that `openchamber-guard-extension` is active in OpenCode's plugin list and the panel shows
 **Enforced by the plugin**. A status report alone does not identify which plugin wrote it. If TD-Plugin's guard support
 is removed first, existing active guards stop being enforced. Both plugins can enforce the same store during the
-transition. Definitions and activations are stored in `~/.td-opencode-plugin/guards/`.
+transition. Saved guards and their enabled state are stored in `~/.td-opencode-plugin/guards/`.
 
 ## Use the panel
 
@@ -45,7 +46,7 @@ transition. Definitions and activations are stored in `~/.td-opencode-plugin/gua
    anything; the validated rules do. The draft is data, not executable code.
 4. Test sample commands in the preview. The tester checks the same rules as the plugin but never runs a command. If it
    cannot interpret a command exactly, it may report that the guard would block it.
-5. Select **Save guard**. Saving adds the definition to **Saved guards** but leaves it off.
+5. Select **Save guard**. Saving adds the guard to **Saved guards** but leaves it off.
 6. Select **Enable…** on a saved guard and choose its scope. **This session** is the default; expiry is off until you
    select it.
 
@@ -55,11 +56,11 @@ The two scopes apply as follows:
   you release it or its optional expiry.
 - **This request** applies to the current OpenCode run, or the next run if the session is idle, and its linked
   subagents. OpenCode events do not include a run identifier, so the plugin releases this scope automatically only when
-  it can confirm that the tracked run and its descendants ended. If completion is uncertain, the activation stays on
-  until you release it or its optional expiry.
+  it can confirm that the tracked run and its descendants ended. If completion is uncertain, the guard stays on until
+  you release it or its optional expiry.
 
-A session without a recorded parent link does not inherit another session's guards. **Release** stops an activation.
-Deleting a definition removes all of its activations; other active guards can still block the same action.
+A session without a recorded parent link does not inherit another session's guards. **Release** turns a guard off.
+Deleting a saved guard turns it off everywhere; other active guards can still block the same action.
 
 ## What guards can match
 
@@ -82,15 +83,15 @@ only when a tool requests that permission action; it is not a filter for every t
 patterns use simple wildcards rather than regular expressions: `*` matches within one path segment, `**` can cross `/`,
 and `?` matches one non-`/` character.
 
-### Definition limits
+### Guard limits
 
 The schema in [`src/guards/schema.ts`](src/guards/schema.ts) enforces these bounds:
 
-- Each definition must have 1 to 16 rules.
+- Each guard must have 1 to 16 rules.
 - A command rule can have up to 16 subcommand alternatives, each up to 8 words, and up to 16 literal flags.
 - A permission rule can have up to 16 resource patterns.
-- The global store can hold up to 256 definitions and 1,024 activations. Text fields and the store file have separate
-  size limits in the schema.
+- The global store can hold up to 256 saved guards and 1,024 enabled guards. Text fields and the store file have
+  separate size limits in the schema.
 
 ## Enforcement boundaries
 
@@ -111,8 +112,7 @@ plugins' data handling.
 
 ## Storage, data, and recovery
 
-Definitions are saved rule sets, and activations enable them for a session or OpenCode run. Both are global across
-projects on this computer. The store is
+Saved guards and their enabled state are global across projects on this computer. The store is
 `~/.td-opencode-plugin/guards/store.json`; the service and plugin must use the same guard directory. Separate hosts
 without a shared directory do not share guards. Guard data does not change permanent OpenCode configuration.
 
@@ -122,17 +122,17 @@ sessions, or change sessions. Session information and parent links are used to a
 are saved as your data, so do not include credentials in requests or sample commands. Plugin status reports and records
 used to track request-scope completion do not include live command text or permission-resource values.
 
-An extension update or restart does not release session-scoped activations (guards enabled for a session). Pausing or
-removing the extension does not remove the global store. Release activations before removing the extension, or keep a
-working guard-management control available.
+An extension update or restart does not release guards enabled for a session. Pausing or removing the extension does
+not remove the global store. Release those guards before removing the extension, or keep a working guard-management
+control available.
 
 If an existing store becomes unreadable or disappears, the plugin keeps its last valid copy. Invalid initial state
 blocks supported mutating actions (shell, edit, write, patch, and subagent actions) until the store is repaired; a store
 missing on the first read means there are no saved guards. If the service reports damaged data, existing rules may still
-be active. Recovery requires a user confirmation, resets definitions and activations across every project, and keeps a
-backup of the damaged file. Only the confirmed user control can start recovery; the model cannot request it through a
-guard-management tool. Cancelling leaves the current state unchanged. A failed recovery is not a release; wait for the
-plugin to report the valid replacement state.
+be active. Recovery requires a user confirmation, deletes all saved guards and releases all enabled guards across
+every project, and keeps a backup of the damaged file. Only the confirmed user control can start recovery; the model
+cannot request it through a guard-management tool. Cancelling leaves the current state unchanged. A failed recovery is
+not a release; wait for the plugin to report the valid replacement state.
 
 See [docs/guards.md](docs/guards.md) for the full scope and release behavior, data handling, recovery steps, and
 enforcement limits.
