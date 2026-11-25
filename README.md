@@ -19,7 +19,8 @@ them.
 
 The package declares OpenChamber `>=2.7.0` in its [manifest](package.json).
 
-1. In OpenChamber, add the package root under **Settings -> Extensions**.
+1. In OpenChamber, add the package root or the repository URL under **Settings -> Extensions**. To do this from an
+   agent, see [Agent fast path](#agent-fast-path).
 2. Approve access to the Small Model, sessions, local service, and bundled OpenCode plugin. The service runs with your
    full user privileges, outside the panel sandbox.
 3. Open the Guards panel in a session. OpenChamber installs the bundled plugin on its managed local OpenCode server.
@@ -28,6 +29,61 @@ The package declares OpenChamber `>=2.7.0` in its [manifest](package.json).
 That status comes from a fresh plugin runtime report for the current location. It confirms the plugin has registered its
 enforcement check and can use the saved guard state there. A missing, stale, or unreadable report does not confirm
 enforcement; existing rules may still be active.
+
+### Agent fast path
+
+An agent can install or reinstall `https://github.com/fsodano/openchamber-guard-extension` through OpenChamber's local
+API. The UI equivalent is **Settings -> Extensions -> add by URL**.
+
+1. Read `desktopLocalPort` from `~/.config/openchamber/settings.json` and use `http://127.0.0.1:<port>` as the base URL.
+   The port can change; read it each time instead of hardcoding a value.
+
+2. Install or reinstall. Omit `"replace":true` on a clean install.
+
+   ```bash
+   curl -sS -X POST http://127.0.0.1:<port>/api/guests \
+     -H 'content-type: application/json' \
+     -d '{"url":"https://github.com/fsodano/openchamber-guard-extension","replace":true}'
+   ```
+
+   OpenChamber clones the private repository into
+   `~/.config/openchamber/extensions/openchamber-guard-extension`. Git credentials must already work on the machine
+   (gh CLI or a credential helper). The built JavaScript is committed, so no `bun install` or build step is needed. The
+   response includes the id `openchamber-guard-extension` and `capabilities.requested`.
+
+3. A reinstall resets the grants. Grant the requested capabilities exactly.
+
+   ```bash
+   curl -sS -X PUT http://127.0.0.1:<port>/api/guests/openchamber-guard-extension/capabilities \
+     -H 'content-type: application/json' \
+     -d '{"granted":["sessions","model","service","opencodePlugin","opencode"]}'
+   ```
+
+   The granted list must match `capabilities.requested` exactly.
+
+4. Wake the service and wait for it to report ready.
+
+   ```bash
+   curl -sS -X POST http://127.0.0.1:<port>/api/guests/openchamber-guard-extension/service/request \
+     -H 'content-type: application/json' \
+     -d '{"method":"GET","path":"/health"}'
+   curl -sS http://127.0.0.1:<port>/api/guests/openchamber-guard-extension/service/status
+   ```
+
+   The first call returns `{"status":200,"body":"{\"ok\":true}"}`. The second returns `{"status":"ready"}`.
+
+5. Verify the install.
+
+   ```bash
+   curl -sS http://127.0.0.1:<port>/api/guests
+   ```
+
+   The extension entry must show `source: "git"`, `origin.url` set to the repository URL, `enabled: true`,
+   `service.granted: true`, and `opencodePlugin: true`. If the Guards panel does not say **Enforced by the plugin**,
+   restart OpenChamber so the managed OpenCode server loads the plugin.
+
+Do not use the `marketplace_manage` tool for this. Its `import` action expects a manifest with `schemaVersion` 2 or 3,
+and its `install` action expects a registry selector.
 
 ## Use the panel
 
